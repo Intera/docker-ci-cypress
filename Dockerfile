@@ -9,10 +9,6 @@ RUN apt-get install -y \
         apt-transport-https \
         curl
 
-# Download Cypress binary
-RUN mkdir /opt/cypress \
-    && curl -sS https://download.cypress.io/desktop > /opt/cypress/cypress.zip
-
 # Install Yarn
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
@@ -35,6 +31,10 @@ RUN apt-get install -y \
 RUN apt-get install -y \
     libasound2 \
     xvfb
+
+# Download Cypress binary
+RUN mkdir /opt/cypress \
+    && curl -sS https://cdn.cypress.io/desktop/2.1.0/linux64/cypress.zip > /opt/cypress/cypress.zip
 
 # Cleanup
 RUN apt-get purge -y \
