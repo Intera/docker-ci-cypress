@@ -34,7 +34,7 @@ RUN apt-get install -y \
 
 # Download Cypress binary
 RUN mkdir /opt/cypress \
-    && curl -sS https://cdn.cypress.io/desktop/2.1.0/linux64/cypress.zip > /opt/cypress/cypress.zip
+    && curl -sS https://cdn.cypress.io/desktop/3.0.3/linux64/cypress.zip > /opt/cypress/cypress.zip
 
 # Cleanup
 RUN apt-get purge -y \
