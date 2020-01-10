@@ -1,4 +1,7 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV LANG C.UTF-8
 
 # Update package lists and bring all package up to date.
 RUN apt-get update \
@@ -7,7 +10,8 @@ RUN apt-get update \
 # Install dependencies for install scripts.
 RUN apt-get install -y \
         apt-transport-https \
-        curl
+        curl \
+        gnupg
 
 # Install Yarn
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -16,7 +20,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && apt-get install -y yarn
 
 # Install Node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
 	&& apt-get install -y nodejs
 
 # Install Cypress dependencies (separate commands to avoid time outs)
@@ -34,13 +38,14 @@ RUN apt-get install -y \
 
 # Download Cypress binary
 RUN mkdir /opt/cypress \
-    && curl -sS https://cdn.cypress.io/desktop/2.1.0/linux64/cypress.zip > /opt/cypress/cypress.zip
+    && curl -sS https://cdn.cypress.io/desktop/3.8.1/linux-x64/cypress.zip > /opt/cypress/cypress.zip
 
 # Cleanup
 RUN apt-get purge -y \
 	    apt-transport-https \
 	    curl \
 	    lsb-release \
+	    gnupg \
 	&& apt-get --purge -y autoremove \
 	&& apt-get autoclean \
 	&& apt-get clean \
