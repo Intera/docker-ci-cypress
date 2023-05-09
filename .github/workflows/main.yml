@@ -50,9 +50,9 @@ jobs:
 
             - name: Verify Cypress
               run: |
-                  docker run --rm -v ./verify.sh:/opt/verify.sh intera/ci-cypress:local bash /opt/verify.sh
+                  docker run --rm -v "$(pwd)/verify.sh":/opt/verify.sh intera/ci-cypress:local bash /opt/verify.sh
 
-            - name: pUSH Docker image
+            - name: Push Docker image
               uses: docker/build-push-action@v4
               with:
                   context: .
