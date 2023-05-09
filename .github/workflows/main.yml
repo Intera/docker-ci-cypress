@@ -4,43 +4,57 @@ name: Build and push to Docker Hub
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: ['*']
+    # Triggers the workflow on push or pull request events but only for the master branch
+    push:
+        branches: ["*"]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
+    push_to_registry:
+        name: Push Docker image to Docker Hub
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
-        # Uses v1.10.0, sha1 is used for better security
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+            - name: Docker meta
+              id: meta
+              uses: docker/metadata-action@v4
+              with:
+                  images: |
+                      intera/ci-cypress
+                      intera/docker-ci-cypress
+                  # generate Docker tags based on the following events/attributes
+                  tags: |
+                      type=raw,priority=700,value=latest,enable={{ is_default_branch }}
+                      type=ref,event=branch
 
-      - name: Get docker tag for master
-        if: github.ref == 'refs/heads/master'
-        shell: bash
-        run: echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+            - name: Log in to Docker Hub
+              # Uses v2.1.0, sha1 is used for better security
+              uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Get branch for all other branches
-        if: github.ref != 'refs/heads/master'
-        shell: bash
-        run: echo "DOCKER_TAG=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+            - name: Build Docker image
+              uses: docker/build-push-action@v4
+              with:
+                  context: .
+                  load: true
+                  tags: |
+                      ${{ steps.meta.outputs.tags }}
+                      intera/ci-cypress:local
 
-      - name: Build and push Docker image
-       # Uses v2.7.0, sha1 is used for better security
-        uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
-        with:
-          context: .
-          push: true
-          tags: intera/ci-cypress:${{ env.DOCKER_TAG }},intera/docker-ci-cypress:${{ env.DOCKER_TAG }}
+            - name: Verify Cypress
+              run: |
+                  docker run --rm -v "$(pwd)/verify.sh":/opt/verify.sh intera/ci-cypress:local bash /opt/verify.sh
+
+            - name: Push Docker image
+              uses: docker/build-push-action@v4
+              with:
+                  context: .
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
