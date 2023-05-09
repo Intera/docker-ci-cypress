@@ -1,47 +1,16 @@
-FROM ubuntu:16.04
+# syntax = docker/dockerfile:1.2
 
-# Update package lists and bring all package up to date.
-RUN apt-get update \
-    && apt-get dist-upgrade -y
+FROM ubuntu:18.04
 
-# Install dependencies for install scripts.
-RUN apt-get install -y \
-        apt-transport-https \
-        curl
+ARG cypressVersion=2.1.0
+ARG nodeVersion=16
 
-# Install Yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get install -y yarn
+COPY ./build.sh /opt/build.sh
 
-# Install Node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-	&& apt-get install -y nodejs
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CYPRESS_INSTALL_BINARY="/opt/cypress/cypress.zip"
+ENV CYPRESS_VERSION="$cypressVersion"
 
-# Install Cypress dependencies (separate commands to avoid time outs)
-RUN apt-get install -y \
-    libgtk2.0-0
-RUN apt-get install -y \
-    libnotify-dev
-RUN apt-get install -y \
-    libgconf-2-4 \
-    libnss3 \
-    libxss1
-RUN apt-get install -y \
-    libasound2 \
-    xvfb
+RUN bash /opt/build.sh "${cypressVersion}" "${nodeVersion}"
 
-# Download Cypress binary
-RUN mkdir /opt/cypress \
-    && curl -sS https://cdn.cypress.io/desktop/2.1.0/linux64/cypress.zip > /opt/cypress/cypress.zip
-
-# Cleanup
-RUN apt-get purge -y \
-	    apt-transport-https \
-	    curl \
-	    lsb-release \
-	&& apt-get --purge -y autoremove \
-	&& apt-get autoclean \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/*
+RUN rm /opt/build.sh
