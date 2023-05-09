@@ -1,17 +1,13 @@
 FROM cypress/base:latest
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV LANG C.UTF-8
+ARG cypressVersion=3.8.3
 
-# Update package lists and bring all package up to date.
-RUN apt-get update && apt-get dist-upgrade -y
+COPY ./build.sh /opt/build.sh
 
-RUN apt-get install -y curl
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CYPRESS_INSTALL_BINARY="/opt/cypress/cypress.zip"
+ENV CYPRESS_VERSION="$cypressVersion"
 
-# Download Cypress binary
-RUN mkdir /opt/cypress && curl -sS https://cdn.cypress.io/desktop/3.8.1/linux-x64/cypress.zip >/opt/cypress/cypress.zip
+RUN bash /opt/build.sh "${cypressVersion}"
 
-# Cleanup
-RUN apt-get purge -y curl && apt-get --purge -y autoremove && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-ENV CYPRESS_RUN_BINARY="/opt/cypress/cypress.zip"
+RUN rm /opt/build.sh

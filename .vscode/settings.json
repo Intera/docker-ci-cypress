@@ -1,0 +1,7 @@
+{
+    "editor.defaultFormatter": null,
+    "[dockerfile]": {
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "shellformat.flag": "--binary-next-line --case-indent"
+}
